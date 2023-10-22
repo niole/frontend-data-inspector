@@ -20,19 +20,12 @@ type VisDataPoint = {
 };
 
 function App() {
+  const [color, setContentColor] = createSignal<string | undefined>();
   const [points, setPoints] = createSignal<VisDataPoint[]>([]);
   const [selectedContent, setContent] = createSignal<string | undefined>();
+  const [uri, setUri] = createSignal<string | undefined>();
   onMount(() => {
     Chart.register(Tooltip, Title);
-  });
-
-  createEffect(() => {
-    //setPoints(mockData);
-    fetch('http://localhost:8080/import?uri=https://www.gutenberg.org/ebooks/71922.txt.utf-8&k=5')
-    .then(x => x.json())
-    .then(x => {
-        setPoints(() => x.data);
-      });
   });
 
   const options = {
@@ -45,6 +38,8 @@ function App() {
           enabled: true,
           callbacks: {
             label: (ctx: any) => {
+              console.log(ctx);
+              setContentColor(ctx?.dataset?.backgroundColor);
               setContent(() => ctx.raw.content);
               return ctx.raw.content;
             }
@@ -53,30 +48,41 @@ function App() {
       }
   };
 
+  function getUriData() {
+    fetch(`http://localhost:8080/import?uri=${uri()}&k=5`)
+    .then(x => x.json())
+    .then(x => {
+        setPoints(() => x.data);
+      });
+  }
+
   return (
-    <div style={{ display: 'flex', 'flex-direction': 'row'}}>
-      <span>
-        <DefaultChart
-          type="scatter"
-          data={{
-            datasets: Object.entries(
-              groupBy((d: VisDataPoint) => d.centroid_index.toString())(points())
-            ).map((
-                [label, ps]: [string, VisDataPoint[] | undefined]
-            ) => ({
-                label,
-                backgroundColor: COLORS[parseInt(label)],
-                data: (ps || []).map(p => ({ content: p.content, x: p.point[0],y:  p.point[1] }))
-              })
-            )
-          }}
-          options={options}
-          width={700}
-          height={500}
-        />
-      </span>
-      <div style={{'overflow-y': 'auto', height: '500px'}}>{selectedContent()}</div>
-    </div>
+    <>
+      <input placeholder="uri" onChange={e => setUri(e.target.value)}/><button onClick={getUriData}>uri</button>
+      <div style={{ display: 'flex', 'flex-direction': 'row'}}>
+        <span>
+          <DefaultChart
+            type="scatter"
+            data={{
+              datasets: Object.entries(
+                groupBy((d: VisDataPoint) => d.centroid_index.toString())(points())
+              ).map((
+                  [label, ps]: [string, VisDataPoint[] | undefined]
+              ) => ({
+                  label,
+                  backgroundColor: COLORS[parseInt(label)],
+                  data: (ps || []).map(p => ({ content: p.content, x: p.point[0],y:  p.point[1] }))
+                })
+              )
+            }}
+            options={options}
+            width={700}
+            height={500}
+          />
+        </span>
+        <div style={{background: color(), 'overflow-y': 'auto', height: '500px'}}>{selectedContent()}</div>
+      </div>
+    </>
   );
 }
 
