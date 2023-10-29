@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+#msg {
+  position: fixed;
+  right: 0;
+  margin: 5px;
+}

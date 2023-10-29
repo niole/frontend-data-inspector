@@ -2,6 +2,7 @@ import { onMount, createSignal } from 'solid-js';
 import { Chart, Title, Tooltip } from 'chart.js'
 import { DefaultChart } from 'solid-chartjs';
 import { groupBy } from 'ramda';
+import { InfoToast } from './Toast';
 
 const COLORS = ['#d81919', '#d6b012', '#26a100', '#b9ba0b', '#ff5100', '#ff8851', '#2aa0b7', '#6ccadc', '#a7e8f5'];
 
@@ -59,7 +60,10 @@ function App() {
     .then(x => x.json())
     .then(x => {
         setPoints(() => x.data);
-      }));
+    }))
+    .catch(e => {
+      InfoToast(e.message);
+    });
   }
 
   function getTextSnippetData() {
@@ -70,7 +74,10 @@ function App() {
     .then(x => x.json())
     .then(x => {
         setPoints(() => x.data);
-      }));
+    }))
+    .catch(e => {
+      InfoToast(e.message);
+    });
   }
 
   return (
@@ -111,7 +118,9 @@ function App() {
             height={500}
           />
         </span>
-        <div style={{background: color(), 'overflow-y': 'auto', height: '500px'}}>{selectedContent()}</div>
+        <div style={{background: color(), 'overflow-y': 'auto', height: '500px'}}>
+          {selectedContent()}
+        </div>
       </div>
       </>
   );
